@@ -1,0 +1,13 @@
+{%- assign maximum_width = 300 -%}
+{%- assign maximum_height = 300 -%}
+<h1 class="page-title">{{'collections.general.list_collections_title' | t }}</h1>
+
+<ul class="block-grid columns3 collection-th flexbox-grid">
+   {% for collection in collections %}
+      {% unless collection.handle == 'frontpage' %}
+         <li>
+           {% include 'collection-grid-item' %}
+         </li>
+      {% endunless %}
+   {% endfor %}
+</ul> 

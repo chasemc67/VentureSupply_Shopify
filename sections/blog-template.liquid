@@ -1,0 +1,104 @@
+{% paginate blog.articles by 10 %}     
+
+<div class="blog-header">
+  <h1 class="page-title">{{blog.title}}</h1>
+  {% include 'blog-tags' %}
+</div>
+
+{% for article in blog.articles %}
+  {% capture articletitle %}{{article.title | escape}}{% endcapture %}
+  {% capture articleurl %}http://{{shop.domain}}{{article.url}}{% endcapture %}  
+  {% assign article_content = article.excerpt_or_content %}
+  {% assign featured_image_src = '' %}
+
+  {% if article.image %}
+    {% capture img_id %}ArticleImage-{{ section.id }}--{{ article.image.id }}{% endcapture %}
+    {% capture wrapper_id %}ArticleImageWrapper-{{ section.id }}--{{ article.image.id }}{% endcapture %}
+    {%- assign img_url = article.image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+    {%- assign image_alt = article.title | escape -%}
+    {% include 'image-style' with image: article.image, img_width: 845, img_height: 1024, wrapper_id: wrapper_id, img_id: img_id %}
+    <div id="{{ wrapper_id }}" class="article__image-wrapper article-featured-image js">
+      <div style="padding-top:{{ 1 | divided_by: article.image.aspect_ratio | times: 100}}%;">
+        <img id="{{ img_id }}"
+             class="article-image lazyload blur-up"
+             src="{{ article.image | img_url: '300x300' }}"
+             data-src="{{ img_url }}"
+             data-widths="[90, 120, 150, 180, 360, 480, 600, 750, 940, 1080, 1296]"
+             data-aspectratio="{{ article.image.aspect_ratio }}"
+             data-sizes="auto"
+             alt="{{ image_alt }}"/>
+      </div>
+    </div>
+
+    <noscript>
+      <p>{{ article | img_url: '1024x1024' | img_tag: image_alt, 'article__image' | link_to: article.url }}</p>
+    </noscript>
+  {% endif %}   
+  <div class="article-list clearfix{% if forloop.last %} last{% endif %}">
+    <h2><a href="{{ article.url }}">{{ article.title | escape }}</a></h2>   
+    <div class="article-meta">
+      {% if section.settings.blog_show_author %}
+        <span class="author">{{ 'blogs.article.by_author' | t: author: article.author }}</span>
+      {% endif %}
+
+      {% if section.settings.blog_show_date %}
+        <span class="article-date">
+          {{ article.published_at | time_tag: '%b %d, %Y' }}
+        </span>
+      {% endif %}
+
+      {% if blog.comments_enabled? %}
+        <span class="post-comment-count">
+        <a class="comment-count" href="{{article.url}}#comments">{{ 'blogs.comments.comments_with_count' | t: count: article.comments_count }}</a>
+        </span>            
+      {% endif %}
+    </div>
+
+    <div class="article-content">
+      {% unless featured_image_src == blank %}
+        <div class="article-featured-image">
+          <a href="{{ article.url }}">{{ featured_image_src | img_tag: article.title }}</a>
+        </div>
+      {% endunless %}
+      {{ article.excerpt_or_content }}
+      {% if article.excerpt != blank %}
+        <p>
+        <span class="view-article"><a href="{{ article.url }}">{{ 'blogs.general.read_more_html' | t }}</a></span>
+        </p>
+      {% endif %}
+    </div> 
+  </div>
+{% endfor %}
+
+{% if paginate.pages > 1 %}
+    {% include 'pagination' %}
+{% endif %}
+      
+{% endpaginate %}  
+
+{% schema %}
+  {
+    "name": "Blog pages",
+    "class": "inner-wrap",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "blog_show_author",
+        "label": "Show author",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "blog_show_date",
+        "label": "Show date",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_blog_categories",
+        "label": "Show blog category dropdown",
+        "default": true
+      }
+    ]
+  }
+{% endschema %}

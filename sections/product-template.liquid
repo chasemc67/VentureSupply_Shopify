@@ -1,0 +1,302 @@
+{%- assign current_variant = product.selected_or_first_available_variant -%} 
+{%- assign featured_image = current_variant.featured_image | default: product.featured_image -%}
+{%- assign product_image_zoom_size = '1024x1024' -%}
+{%- assign thumbnail_size = '100x100' -%}
+{%- assign zoom_enabled = section.settings.zoom_product -%}
+
+<div itemscope itemtype="http://schema.org/Product" id="prod-{{product.id}}" class="clearfix{% if section.settings.show_payment_button %} show-extra-buttons{% endif %}" data-section-id="{{ section.id }}" data-section-type="product"{% if section.settings.show_preorder %} data-show-preorder="yes"{% endif %}{% if section.settings.show_inventory %} data-show-inventory="yes"{% endif %}{% if zoom_enabled %} data-zoom-enabled="true"{% endif%}>
+
+  <meta itemprop="name" content="{{ product.title }}">
+  <meta itemprop="url" content="{{ shop.url }}{{ product.url }}">
+  <meta itemprop="image" content="{{ product.featured_image.src | img_url: '800x' }}">
+
+  <h1 class="page-title">{{ product.title | escape}}</h1>   
+
+  <div class="product-images clearfix{% if product.images.size > 1%} multi-image{% else %} single-image{% endif %}">
+    
+    <a class="product-shot product-shot-{{section.id}} productimage" data-image-id="{{featured_image.id}}" href="{{ featured_image | img_url: product_image_zoom_size}}">
+      {% assign image = featured_image %}
+      {%- assign img_url = image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+      <img class="lazyload blur-up js"
+           src="{{ image | img_url: '300x' }}"
+           data-src="{{ img_url }}"
+           data-widths="[360, 540, 720, 900, 1080, 1296, 1512, 1728, 2048]"
+           data-aspectratio="{{ image.aspect_ratio }}"
+           data-sizes="auto"
+           alt="{{ image.alt | escape }}" /> 
+      <noscript>
+        <img src="{{ image | img_url: '1024x' }}" alt="{{ image.alt | escape }}" />
+      </noscript>
+      {% if product.compare_at_price > product.price %}
+        {% if section.settings.show_sale_sticker %}
+          <span class="sale round">{{ 'products.general.sale' | t }}</span>
+        {% endif %}
+      {% endif %}
+      <span class="icon-magnifier"></span>
+    </a>
+
+    <div class="more-images more-images-{{section.id}} product-thumbs-{{section.id}} clearfix" data-section-id="{{section.id}}" data-arrow-left="{% include 'icon-arrowleft'%}" data-arrow-right="{% include 'icon-arrowright'%}">   
+      {% for image in product.images %}
+        {%- assign active_image = "" -%}
+        {%- if featured_image == image -%}
+          {%- assign active_image = "active-img" -%}
+        {%- endif -%}
+        <a href="{{ image | product_img_url: product_image_zoom_size }}" class="js carousel-nav {{active_image}} productimage smallimg{% if section.settings.mobile_hide_prd_images %} hide-for-mobile{% endif %}" data-image-index="{{forloop.index0}}" title="{{product.title | escape }}" data-image-id="{{ image.id }}" data-image-retina="{{ image | product_img_url: product_image_zoom_size, scale:2 }}">
+           <img src="{{ image | product_img_url: thumbnail_size }}" srcset="{{ image | product_img_url: thumbnail_size }} 1x, {{ image | product_img_url: thumbnail_size, scale: 2 }} 2x" alt="{{ image.alt | escape }}" />
+        </a>
+      {% endfor %}
+    </div>  
+
+    <noscript>
+    <div class="extra-product-images">
+      {% for image in product.images %}
+        <a href="{{ image | product_img_url: product_image_zoom_size }}" class="productimage smallimg">
+          <img src="{{ image | img_url: '100x100', scale:2, crop:'center' }}" alt="{{ image.alt | escape }}" />
+        </a>
+      {% endfor %}
+    </div>
+    </noscript>
+  </div>  
+
+  <div class="product-details">
+    {% assign product_vendor_handle = product.vendor | handle %}
+    {% if collections[product_vendor_handle].handle == product_vendor_handle %}
+      {% assign vendor_url = collections[product_vendor_handle].url %}
+    {% else %}
+      {% assign vendor_url = product.vendor | url_for_vendor %}
+    {% endif %}
+
+    <h2 itemprop="brand" class="{% unless section.settings.show_vendor %}hide{% endunless%}">{{ product.vendor | link_to: vendor_url }}</h2>  
+
+    <div class="product-price-wrap" itemprop="offers" itemscope itemtype="http://schema.org/Offer">
+      <meta itemprop="priceCurrency" content="{{ shop.currency }}" />
+      {% if product.available %}
+        <link itemprop="availability" href="http://schema.org/InStock" />
+      {% else %}
+        <link itemprop="availability" href="http://schema.org/OutOfStock" />
+      {% endif %}
+      {% if product.price == 0.00 %}
+      <span id="productPrice-{{ section.id }}" class="product-price" itemprop="price" content="please contact for price"><span class=price-money><a href="/pages/contact">please contact for price</a></span></span>&nbsp;<s class="product-compare-price"></s>      
+      {% elsif product.compare_at_price > product.price %}
+        <span id="productPrice-{{ section.id }}" class="product-price on-sale" itemprop="price" content="{{ current_variant.price | money_without_currency }}"><span class=price-money>{{ current_variant.price | money }}</span></span>&nbsp;<s id="comparePrice-{{ section.id }}" class="product-compare-price"><span class=price-money>{{ current_variant.compare_at_price | money }}</span></s>
+      {% else %}
+        <span id="productPrice-{{ section.id }}" class="product-price" itemprop="price" content="{{ current_variant.price | money_without_currency }}"><span class=price-money>{{ current_variant.price | money }}</span></span>&nbsp;<s class="product-compare-price"></s>
+      {% endif %}
+    </div>          
+    
+    {% if section.settings.show_product_sku %}
+      <div id="productSKU-{{ section.id }}" class="sku-info">{% if current_variant.sku != blank %}{{'products.product.sku' | t}} {{current_variant.sku}}{% endif %}</div>
+    {% endif %}
+
+    {% if product.available %}
+        {% form 'product', product %}
+        <div class="product-variants">
+          <fieldset>
+            {% unless product.options.size == 1 and product.variants[0].title == 'Default Title' %}
+              {% for option in product.options_with_values %}
+                <div class="selector-wrapper js product-form__item">
+                  <label {% if option.name == 'default' %}class="label--hidden" {% endif %}for="SingleOptionSelector-{{ section.id }}-{{ forloop.index0 }}">{{ option.name }}</label>
+                  <select class="single-option-selector single-option-selector-{{ section.id }} product-form__input"
+                  id="SingleOptionSelector-{{ forloop.index0 }}"
+                  data-name="{{ option.name }}"
+                  data-index="option{{ forloop.index }}">
+                  {% for value in option.values %}
+                    <option value="{{ value | escape }}"{% if option.selected_value == value %} selected="selected"{% endif %}>{{ value }}</option>
+                  {% endfor %}
+                  </select>
+                </div>
+              {% endfor %}
+            {% endunless %}
+
+            <select name="id" id="productSelect-{{ section.id }}" class="product-form__variants no-js">
+              {% for variant in product.variants %}
+                <option {% if variant == current_variant %} selected="selected" {% endif %}date-image-id="{{variant.featured_image.id}}" data-sku="{{ variant.sku }}" {% if section.settings.show_inventory and variant.inventory_management %}data-stk="{{variant.inventory_quantity}}"{% endif %} value="{{ variant.id }}" {% unless variant.available %} disabled="disabled" {% endunless %}>
+                  {% if variant.available %}
+                  {{ variant.title }} - <span class=price-money>{{ variant.price | money_with_currency }}</span>
+                {% else %}
+                  {{ variant.title }} - {{ 'products.product.sold_out' | t }}
+                {% endif %}
+                </option>
+              {% endfor %}
+            </select>
+          </fieldset>
+          
+          <div id="stockMsg-{{ section.id }}">
+              {% if section.settings.show_preorder and current_variant.inventory_management and current_variant.inventory_quantity <= 0 and current_variant.inventory_policy == "continue" %}
+                <div class="var-msg">
+                  <!-- inventory is managed and stock qty is 0 or less but item can still be purchased -->
+                  {{'products.product.preorder_msg' | t}}
+                </div>
+              {% elsif section.settings.show_inventory and current_variant.inventory_management %}
+                  <!-- show inventory qty for managed variants -->
+                   <div class="var-msg">
+                      {{'products.product.availability' | t}} {{current_variant.inventory_quantity}} {{ 'products.product.in_stock' | t }}
+                    </div>                  
+              {% endif %}
+          </div>
+          
+        </div>
+        
+        <div class="quick-actions clearfix">  
+          {% if section.settings.show_qty %}
+            <p class="qty-field">
+              <label for="product-quantity-{{product.id}}">{{'products.product.quantity' | t}}</label>
+              <input type="number" id="product-quantity-{{product.id}}" name="quantity" value="1" min="1" />
+            </p>
+          {% endif %}                                            
+          
+          <span id="addToCartText-{{ section.id }}">
+            Pickup In Store Only
+          </span>
+          <!--
+          <button type="submit"
+          class="purchase button{% unless section.settings.show_payment_button %} pulse animated{% endunless %}" 
+          name="add"
+          id="addToCart-{{ section.id }}"
+          {% unless current_variant.available %}disabled="disabled"{% endunless %}>
+          <span id="addToCartText-{{ section.id }}">
+            {% unless current_variant.available %}
+              {{ 'products.product.sold_out' | t }}
+            {% else %}
+              {{ 'products.product.add_to_cart' | t }}
+            {% endunless %}
+          </span>
+          </button>
+			--!>
+          
+          {% if section.settings.show_payment_button %}
+             <div style="{% unless current_variant.available %}display:none{% endunless %}" class="extra-button-wrap extra-button-wrap-{{section.id}}">
+                {{ form | payment_button }}
+             </div>
+          {% endif %}
+  
+        </div>
+      {% endform %}
+    {% else %}
+      <p><strong>{{'products.product.out_of_stock_msg' | t}}</strong></p>
+    {% endif %}    
+
+    {% if collection %}
+      {% if collection.previous_product or collection.next_product %}
+        <div class="product-nav clearfix">     
+          {% if collection.previous_product %}
+            {% capture prev_url %}{{ collection.previous_product}}#content{% endcapture %}
+            <span class="left">{{ 'products.general.previous_product_html' | t | link_to: prev_url }}</span>
+          {% endif %}
+          {% if collection.next_product %}
+            {% capture next_url %}{{ collection.next_product}}#content{% endcapture %}
+            <span class="right">{{ 'products.general.next_product_html' | t | link_to: next_url }}</span>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endif %}        
+
+    {% if section.settings.product_social %}
+      <div class="share-me" class="clearfix">
+        {% capture shareHeading %}{{ 'products.general.share' | t }}{% endcapture %}
+        {% include 'social-sharing', share_title: product.title, share_permalink: product.url, share_image: product, share_heading:shareHeading %}
+      </div>
+    {% endif %}
+  </div> <!-- product details -->
+
+  <div class="product-description rte" itemprop="description">
+    {{ product.description }}
+  </div>
+
+</div>  
+
+{% if section.settings.product_related %}
+  {% include 'related' %}
+{% endif %}  
+
+{% unless product.empty? %}
+  <script type="application/json" id="ProductJson-{{ section.id }}">
+    {{ product | json }}
+  </script>
+{% endunless %}
+
+{% schema %}
+  {
+    "name": "Product pages",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "show_payment_button",
+        "label": "Show dynamic checkout button",
+        "default": false,
+        "info": "Lets customers check out directly using a familiar payment method. [Learn more](https://help.shopify.com/manual/using-themes/change-the-layout/dynamic-checkout)"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_inventory",
+        "label": "Show inventory quantity",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "show_preorder",
+        "label": "Show \"pre-order\" message",
+        "default": true,
+        "info": "This will only appear when a product has managed inventory that is 0 or less and still available to buy"
+      },
+      {
+        "type": "checkbox",
+        "id": "zoom_product",
+        "label": "Enable image zoom",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_qty",
+        "label": "Show qty box on product screen",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_product_sku",
+        "label": "Show SKU",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_vendor",
+        "label": "Show vendor",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "show_sale_sticker",
+        "label": "Show sale sticker",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "product_social",
+        "label": "Show sharing buttons",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Related items"
+      },
+      {
+        "type": "checkbox",
+        "id": "product_related",
+        "label": "Enable",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "title_related",
+        "label": "Title",
+        "default": "You may also like..."
+      },
+      {
+        "type": "checkbox",
+        "id": "mobile_related_items",
+        "label": "Hide related items on mobile",
+        "default": false
+      }
+    ]
+  }
+{% endschema %}

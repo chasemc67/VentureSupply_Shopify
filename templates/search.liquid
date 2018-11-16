@@ -1,0 +1,64 @@
+{%- assign thumbnail_size = '350x350' -%}
+
+<div id="search-results" class="inner-wrap">  
+   <form action="/search" method="get" class="search-form clearfix" role="search">
+    <div class="inline-group">
+     <input class="input-text" type="text" name="q" value="{{ search.terms | escape }}" placeholder="{{ 'general.search.placeholder' | t }}" />
+     <span class="button-wrap">
+        <button class="button" type="submit">{{ 'general.search.submit' | t }}</button>
+     </span>
+  </div>
+</form>  
+
+
+{% if search.performed %}
+   {% paginate search.results by 10 %}  
+
+   {% if search.results_count == 0 %} 
+      <p>{{ 'general.search.no_results_html' | t: terms: search.terms }}</p>
+   {% else %}
+      <h3>{{ 'general.search.results_for_html' | t: terms: search.terms }}</h3> 
+      <ol>
+      {% for item in search.results %}      
+         <li class="clearfix">
+         {% if item.object_type == 'article' %}
+         <!-- 'item' is an article -->
+            {% if item.image %}
+               <div class="res-image">
+                  <a href="{{ item.url }}" title="{{ item.title | escape }}">
+                     <img src="{{ item | img_url: thumbnail_size }}" srcset="{{ item | img_url: thumbnail_size }} 1x, {{ item | img_url: thumbnail_size, scale: 2 }} 2x" alt="{{ item.title | escape }}" />
+                  </a>
+               </div>
+            {% endif %}
+         {% elsif item.object_type == 'page' %}
+            <!-- 'item' is a page -->
+         {% else %}
+            <!-- 'item' is a product -->
+            {% if item.featured_image %}
+               <div class="res-image">
+                  <a href="{{item.url}}" title="{{ item.title | escape }}">
+                     <img src="{{ item.featured_image | product_img_url: thumbnail_size }}" srcset="{{ item.featured_image | product_img_url: thumbnail_size }} 1x, {{ item.featured_image | product_img_url: thumbnail_size, scale: 2 }} 2x" alt="{{ item.title | escape }}" />
+                  </a>
+               </div>
+            {% endif %}
+         {% endif %}             
+         <h4>{{ item.title | link_to: item.url }}</h4>
+         {% if item.object_type == 'product' and item.price != 0.00 %}        	
+	     	<p>{% if item.price_varies %}{{'products.general.from' | t }} {% endif %}<span class=price-money>{{item.price | money}}</span></p>
+           
+         {% endif %}
+         <span class="search-result-text">{{ item.content | strip_html | truncatewords: 40 | highlight: search.terms }}</span>
+         </li>
+      {% endfor %}
+      </ol>            
+   {% endif %}
+
+   {% if paginate.pages > 1 %}
+       {% include 'pagination' %}
+   {% endif %}
+
+   {% endpaginate %}       
+{% endif %}
+
+</div>
+

@@ -1,0 +1,95 @@
+<div class="blog-header">
+  <h1 class="page-title">{{article.title}}</h1>
+  {% include 'blog-tags' %}
+</div>
+
+<div class="article-meta">
+  {% if section.settings.blog_show_author %}
+    <span class="article__author">{{ 'blogs.article.by_author' | t: author: article.author }}</span>
+  {% endif %}
+
+  {% if section.settings.blog_show_date %}
+    <span class="article__date">
+      {{ article.published_at | time_tag: '%b %d, %Y' }}
+    </span>
+  {% endif %}
+  {% if blog.comments_enabled? %}
+    <span class="post-comment-count">
+      <a class="comment-count" href="{{article.url}}#comments">{{ 'blogs.comments.comments_with_count' | t: count: article.comments_count }}</a>
+    </span>            
+  {% endif %}
+</div>       
+
+<div class="article-content" itemprop="articleBody">
+  {% if article.image %}
+    {% capture img_id %}ArticleImage-{{ section.id }}--{{ article.image.id }}{% endcapture %}
+    {% capture wrapper_id %}ArticleImageWrapper-{{ section.id }}--{{ article.image.id }}{% endcapture %}
+    {%- assign img_url = article.image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+    {%- assign image_alt = article.title | escape -%}
+    {% include 'image-style' with image: article.image, img_width: 845, img_height: 1024, wrapper_id: wrapper_id, img_id: img_id %}
+    <div id="{{ wrapper_id }}" class="article__image-wrapper article-featured-image js">
+      <div style="padding-top:{{ 1 | divided_by: article.image.aspect_ratio | times: 100}}%;">
+        <img id="{{ img_id }}"
+             class="article-image lazyload blur-up"
+             src="{{ article.image | img_url: '300x300' }}"
+             data-src="{{ img_url }}"
+             data-widths="[90, 120, 150, 180, 360, 480, 600, 750, 940, 1080, 1296]"
+             data-aspectratio="{{ article.image.aspect_ratio }}"
+             data-sizes="auto"
+             alt="{{ image_alt }}"/>
+      </div>
+    </div>
+
+    <noscript>
+      <p>{{ article | img_url: '1024x1024' | img_tag: image_alt, 'article__image' | link_to: article.url }}</p>
+    </noscript>
+  {% endif %}                                        
+  {{ article.content }}
+</div>   
+
+{% if section.settings.show_share_buttons %}
+  {% capture shareHeading %}{{ 'blogs.general.share_this_post' | t }}{% endcapture %}
+  {% include 'social-sharing', share_title: article.title, share_permalink: article.url, share_image: article.image, share_heading:shareHeading %}
+{% endif %}
+
+{% if blog.next_article or blog.previous_article %}
+   <div class="article-nav clearfix"> 
+      {% if blog.previous_article %}
+         <a class="go-left button secondary" href="{{blog.previous_article}}">{{ 'blogs.article.older_post' | t }}</a>
+      {% endif %}
+      {% if blog.next_article %}
+         <a class="go-right button secondary" href="{{blog.next_article}}">{{ 'blogs.article.newer_post' | t }}</a>
+      {% endif %}    
+   </div>
+{% endif %}  
+
+{% schema %}
+  {
+    "name": "Posts",
+    "class": "inner-wrap",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "blog_show_author",
+        "label": "Show author",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "blog_show_date",
+        "label": "Show date",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_share_buttons",
+        "label": "Show social sharing buttons",
+        "default": true
+      }
+    ]
+  }
+{% endschema %}
+
+      
+ 
+      

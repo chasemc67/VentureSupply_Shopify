@@ -1,0 +1,19 @@
+{% assign subMenu = linklists[page.handle] %}
+<h1 class="page-title" data-submenu="{{subMenu.title}}">{{page.title}}</h1>
+
+<div class="sub-collection-intro">
+  {{page.content}}
+</div>
+
+{% if subMenu.links.size > 0 %}
+<ul class="block-grid columns3 collection-th flexbox-grid">
+   {% for link in subMenu.links %}
+      {% if link.type == 'collection_link' %}
+        {% assign collection = link.object %}
+        <li>
+           {% include 'collection-grid-item' %}
+        </li>
+      {% endif %}
+   {% endfor %}
+</ul> 
+{% endif %}

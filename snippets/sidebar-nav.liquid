@@ -1,0 +1,39 @@
+{% capture button %}<button class="dropdown-toggle" aria-haspopup="true" aria-expanded="false"><span class="screen-reader-text">Expand child menu</span></button>{% endcapture%}
+{% assign sideMenu = linklists[section.settings.sidebar_linklist] %}
+
+{% if sideMenu.links.size > 0 %}
+   <div class="original-menu">
+      {% for link in sideMenu.links %}
+        <li class="{% if link.links != blank %}has-sub level-1 original-li{% endif %}">
+          <a class="newfont{% if link.links != blank %} top-link{% endif %}" href="{{link.url}}">{{link.title | escape}}{% if link.links != blank %}{{button}}{% endif %}</a>
+          {% if link.links != blank %}
+            <ul class="animated">
+              {% for child1_link in link.links %}
+                <li class="{% if child1_link.links != blank %}has-sub level-2{% endif %}">
+                  <a class="{% if child1_link.links != blank %} top-link{% endif %}" href="{{child1_link.url}}">{{child1_link.title | escape}}{% if child1_link.links != blank %}{{button}}{% endif %}</a>
+                  {% if child1_link.links != blank %} 
+                    <ul>
+                    {% for child2_link in child1_link.links %}
+                      <li>
+                        <a href="{{child2_link.url}}">{{child2_link.title | escape}}</a>
+                      </li>
+                    {% endfor %}
+                    </ul>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </li> 
+      {% endfor %}
+   </div>
+{% endif %}
+<div class='side-menu-mobile hide show-mobile'></div>
+
+
+
+
+
+
+
+

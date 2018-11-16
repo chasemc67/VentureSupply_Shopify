@@ -1,0 +1,237 @@
+{%- if section.settings.show_header_text -%}
+  {%- assign className = " show-header-text " -%}
+{%- endif -%}
+<style>
+#header .logo.img-logo a{max-width:{{ section.settings.logo_max_width | default: '300' | remove: 'px' | append: 'px' }};display:inline-block;line-height:1;vertical-align:bottom;} 
+#header .logo.img-logo,#header .logo.img-logo h1{font-size:1em;}
+.logo.textonly h1,.logo.textonly a{font-size:20px;line-height:1;} 
+.logo.textonly a{display:inline-block;}
+.top-menu a{font-size:{{section.settings.nav_font_size}}px;}
+.logo.show-header-text{text-align:right;overflow:hidden;}
+.logo.show-header-text .logo-wrap{float:left;text-align:left;width:auto;max-width:50%;}
+.logo.show-header-text img{max-height:200px;}
+.header-text{width:50%;max-width:50%;display:inline-block;padding:10px;text-align:right;}
+.header-text p{color:{{section.settings.header_text_color}};margin:0;font-size:14px;line-height:1.2;}
+.flexbox.flexwrap .logo.show-header-text,
+.no-js .logo.show-header-text{display:flex;align-items:center;justify-content:center;}
+.flexbox.flexwrap .logo.show-header-text .header-text,
+.no-js .logo.show-header-text .header-text{max-width:100%;flex:1 1 auto;}
+#header .announcement-bar{margin:1em 0 1em 0;border-radius:20px;line-height:1;background:{{section.settings.announcement_bar_bg}};color:{{section.settings.announcement_bar_text}};padding:10px;font-size:16px;width:100%;}
+#header .announcement-bar a{color:{{section.settings.announcement_bar_text}};}
+@media (min-width: 30em){
+.header-text p{font-size:{{section.settings.header_text_font_size}}px;}
+}
+@media (max-width: 30em){
+#header .announcement-bar{display:none;}
+}
+@media (min-width: 50em){
+.header-text{text-align:center;}
+.logo.textonly h1,.logo.textonly a{font-size:{{section.settings.logo_size}}px;}
+.logo.textonly a{display:inline-block;padding:0.15em 0;}
+}
+</style>
+
+<div class="row clearfix">
+  <div class="logo{{className}}{% if section.settings.logo == blank %} textonly{% else %} img-logo{% endif %}">
+    {% if template == "index" %}
+      {% assign logoTagOpen = "<h1 class='logo-wrap'>" %}
+      {% assign logoTagClose = "</h1>" %}
+    {% else %}
+      {% assign logoTagOpen = "<div class='logo-wrap'>" %}
+      {% assign logoTagClose = "</div>" %}    
+    {% endif %}  
+    {{logoTagOpen}}
+    <a class="newfont" href="/" title="{{shop.name | escape}}">
+    {% if section.settings.logo != blank %}
+      {% capture image_size %}{{ section.settings.logo_max_width }}x{% endcapture %}
+      <img src="{{ section.settings.logo | img_url: image_size }}"
+      srcset="{{ section.settings.logo | img_url: image_size }} 1x, {{ section.settings.logo | img_url: image_size, scale: 2 }} 2x"
+      alt="{{ section.settings.logo.alt | default: shop.name }}"
+      itemprop="logo">
+    {% else %}
+      {{shop.name | escape}}
+    {% endif %}
+    </a>
+    {{logoTagClose}}  
+    {% if section.settings.show_header_text %}
+      <div class="header-text text-center">
+        {{ section.settings.header_text_content }}
+      </div>
+    {% endif %}
+  </div>
+
+  {% if shop.customer_accounts_enabled %}
+    <div class="login-top hide-mobile">
+      {% if customer %}
+        <a href="/account"><span class="icon-user2"></span> {{ 'layout.customer.my_account' | t }}</a> | 
+        <a href="/account/logout">{{ 'layout.customer.log_out' | t }}</a>
+      {% else %}
+        <a href="/account/login">{{ 'layout.customer.log_in' | t }}</a> | <a href="/account/register">{{ 'layout.customer.create_account' | t }}</a>
+      {% endif %}            
+    </div>
+  {% endif %}           
+
+  <div class="cart-info hide-mobile">
+    <a href="/cart"><em>{{cart.item_count}}</em> <span>{{ 'layout.cart.items' | t: count: cart.item_count }}</span></a>
+  </div>
+</div>
+
+{% unless section.settings.announcement_home_only and template != "index"%}
+  {% if section.settings.show_announcement %}
+    <div class="announcement-bar">
+      {% if section.settings.announcement_link != blank %}
+        <a href="{{ section.settings.announcement_link }}">
+      {% endif %}
+      <span>{{ section.settings.announcement_text | escape }}</span>
+      {% if section.settings.announcement_link != blank %}
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endunless %}
+
+{% include 'top-menu' %}
+
+<nav class="off-canvas-navigation show-mobile newfont js">
+  <a href="#menu" class="menu-button">{% include 'icon-menu' %}<span> {{ 'mobile.general.menu_button' | t }}</span></a>         
+  {% if shop.customer_accounts_enabled %}
+    <a href="/account" class="menu-user">{% include 'icon-user' %}<span> {{ 'mobile.general.account_button' | t }}</span></a>        
+  {% endif %}
+  <a href="/cart" class="menu-cart{% if cart.item_count > 0 %} animated bounce{% endif %}">{% include 'icon-cart' %} <span> {{ 'mobile.general.cart_button' | t }}</span></a>  
+  <a href="/search" class="menu-search">{% include 'icon-magnify' %}</a>
+  {% if settings.show_multiple_currencies %}
+    <a href="#currency" class="menu-currency"><span>{{shop.currency}}</span></a>
+  {% endif %}
+</nav> 
+
+
+{% schema %}
+  {
+    "name": "Header",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Menu"
+      },
+      {
+        "type": "link_list",
+        "id": "top_linklist",
+        "label": "Menu",
+        "default": "main-menu"
+      },
+      {
+        "type":      "range",
+        "id":        "nav_font_size",
+        "min":       12,
+        "max":       20,
+        "step":       1,
+        "unit":       "px",
+        "label":     "Menu font size",
+        "default":   20
+      },
+      {
+        "type": "header",
+        "content": "Logo"
+      },
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "Logo image"
+      },
+      {
+        "type":      "range",
+        "id":        "logo_max_width",
+        "min":       150,
+        "max":       850,
+        "step":       50,
+        "unit":       "px",
+        "label":     "Custom logo width",
+        "default":   300
+      },
+      {
+        "type":      "range",
+        "id":        "logo_size",
+        "min":       16,
+        "max":       64,
+        "step":      4,
+        "unit":      "px",
+        "label": "Text logo size",
+        "info": "If you aren't using a custom logo, you can set the size of your text logo here",
+        "default":   48
+      },
+      {
+        "type": "header",
+        "content": "Header text",
+        "info": "Optional text to appear next to logo"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_header_text",
+        "label": "Show text",
+        "default": true
+      },
+      {
+        "type": "richtext",
+        "id": "header_text_content",
+        "label": "Text",
+        "default": "<p>Call: 1-800-000-0000</p><p>123 Fake St.<br>Toronto, Canada</p>"
+      },
+      {
+        "type": "color",
+        "id": "header_text_color",
+        "label": "Text color",
+        "default": "#333333"
+      },
+      {
+        "type":      "range",
+        "id":        "header_text_font_size",
+        "min":       12,
+        "max":       20,
+        "step":       1,
+        "unit":       "px",
+        "label":     "Text size",
+        "default":   16
+      },
+      {
+        "type": "header",
+        "content": "Announcement bar"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_announcement",
+        "label": "Show announcement",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "announcement_home_only",
+        "label": "Home page only",
+        "default": false
+      },
+      {
+        "type": "text",
+        "id": "announcement_text",
+        "label": "Announcement text",
+        "default": "This is the announcement bar"
+      },
+      {
+        "type": "url",
+        "id": "announcement_link",
+        "label": "Announcement link",
+        "info": "Optional"
+      },
+      {
+        "type": "color",
+        "id": "announcement_bar_bg",
+        "label": "Bar",
+        "default": "#ff7700"
+      },
+      {
+        "type": "color",
+        "id": "announcement_bar_text",
+        "label": "Text",
+        "default": "#ffffff"
+      }
+    ]
+  }
+{% endschema %}

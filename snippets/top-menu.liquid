@@ -1,0 +1,36 @@
+{% capture button %}<button class="dropdown-toggle" aria-haspopup="true" aria-expanded="false"><span class="screen-reader-text">Expand child menu</span></button>{% endcapture%}
+
+{% assign topMenu = linklists[section.settings.top_linklist] %}
+
+{% if topMenu.links.size > 0 %}
+   <nav class="top-menu hide-mobile clearfix" role="navigation" aria-labelledby="Top menu" data-menuchosen="{{section.settings.top_linklist}}">
+     <ul>
+      {% for link in topMenu.links %}
+        <li class="from-top-menu{% if link.links != blank %} has-sub level-1 original-li{% endif %}">
+        <a class="newfont{% if link.active %} active{% endif %}{% if link.links != blank %} top-link{% endif %}" href="{{ link.url }}">{{ link.title | escape }}{% if link.links != blank %}{{button}}{% endif %}</a>
+          {% if link.links != blank %}
+            <ul class="sub-menu">
+              {% for child1_link in link.links %}
+                <li class="{% if child1_link.links != blank %}has-sub level-2{% endif %}">
+                  <a class="{% if child1_link.links != blank %}top-link{% endif %}" href="{{child1_link.url}}">{{child1_link.title | escape}}{% if child1_link.links != blank %}{{button}}{% endif %}</a>
+                  {% if child1_link.links != blank %} 
+                    <ul class="sub-menu">
+                    {% for child2_link in child1_link.links %}
+                      <li>
+                        <a href="{{child2_link.url}}">{{child2_link.title | escape}}</a>
+                      </li>
+                    {% endfor %}
+                    </ul>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </li>   
+      {% endfor %}
+     </ul>
+   </nav>
+{% endif %}
+
+
+

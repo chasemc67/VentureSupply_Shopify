@@ -1,0 +1,37 @@
+{% unless maximum_width %}
+  {% assign maximum_width = 300 %}
+{% endunless %}
+{% unless maximum_height %}
+  {% assign maximum_height = 300 %}
+{% endunless %}
+{% capture img_id %}ProductImage-{{section.id}}-{{ img.id }}{% endcapture %}
+{% capture wrapper_id %}ProductImageWrapper-{{section.id}}-{{ img.id }}{% endcapture %}
+
+{%- assign img_url = img | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+{% include 'image-style' with image:img, img_width:maximum_width, img_height:maximum_height, wrapper_id: wrapper_id, img_id: img_id %}
+
+<span class="thumbnail"> 
+  <div id="{{ wrapper_id }}" class="product_img-wrapper js">
+   {% if img %}
+      <div data-asp="{{img.aspect_ratio}}" style="padding-top:{{ 1 | divided_by: img.aspect_ratio | times: 100}}%">
+        <img id="{{ img_id }}"
+        class="thumb-image lazyload blur-up"
+        src="{{ img | img_url: '180x180' }}"
+        data-src="{{ img_url }}"
+        data-widths="[180, 220, 300, 360, 460, 540, 720, 900, 1080, 1296, 1512, 1728, 2048]"
+        data-aspectratio="{{ img.aspect_ratio }}"
+        data-sizes="auto"
+        alt="{{ img.alt | escape }}">
+      </div>
+    {% else %}
+      <div data-asp="{{img.aspect_ratio}}" style="padding-top:100%">
+        <img src="{{ img.featured_image.src | img_url: '300x300' }}" alt="{{ featured.featured_image.alt | escape }}" class="product__img">
+      </div>
+    {% endif %}
+  </div>
+  <noscript>
+    <img class="thumb-image" src="{{ img | img_url: '200x200', scale: 2 }}" alt="{{ img.alt }}" />
+  </noscript>
+</span>
+
+

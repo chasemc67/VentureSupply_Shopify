@@ -1,0 +1,35 @@
+{%- assign collection_image_size = '200x200' -%}
+
+{% if collection.image %}
+  {%- assign image = collection.image -%}
+{% elsif collection.products.first and collection.products.first.images != empty %}
+  {%- assign image = collection.products.first.featured_image -%}
+{% else %}
+  {% assign image = blank %}
+{% endif %}
+
+{%- assign img_url = image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+
+<a class="prod-th" href="{{ collection.url }}" title="{{ collection.title | escape }}">
+
+   {% if collection == empty %}
+      <span class="thumbnail">
+        {% capture current %}{% cycle 1, 2, 3, 4, 5, 6 %}{% endcapture %}
+        {{ 'collection-' | append: current | placeholder_svg_tag: 'placeholder-svg' }}
+      </span>
+   {% else %}
+      {% include 'product-grid-image', img: image %}
+   {% endif %}
+
+  <span class="product-title">
+    <span class="title">
+      {% if collection.empty? %}
+        {{ 'homepage.onboarding.collection_title' | t }}
+      {% else %}
+        {{ collection.title }}
+      {% endif %}
+    </span>  
+  </span>
+</a> 
+
+
